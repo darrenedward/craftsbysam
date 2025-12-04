@@ -1,7 +1,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useStore } from '../../hooks/useStore';
-import { Page } from '../Storefront';
+import { Page } from '../../types';
 import { supabase } from '../../supabaseClient';
 
 const ShoppingBagIcon = () => (

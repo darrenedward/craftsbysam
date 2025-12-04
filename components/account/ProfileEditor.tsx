@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../hooks/useStore';
 import { Button } from '../ui/Button';
@@ -116,7 +117,7 @@ const ProfileEditor = () => {
             if (error) throw error;
             
             setMfaFactorId(data.id);
-            setMfaSecret(data.secret);
+            setMfaSecret(data.totp.secret); // Fixed: data.totp.secret instead of data.secret
             setMfaQrCode(data.totp.qr_code);
         } catch (err) {
             showToast(`Failed to start 2FA enrollment: ${formatError(err)}`, 'error');

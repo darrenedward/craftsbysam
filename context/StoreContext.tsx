@@ -1,9 +1,10 @@
 
 import React, { createContext, useReducer, ReactNode, useState, useEffect } from 'react';
 import { Product, StoreSettings, CartItem, Order, Customer, CartAction, Category, Subcategory, Profile, Address, Toast } from '../types';
-import { supabase } from '../supabaseClient';
+import { supabase, supabaseUrl, isMockMode } from '../supabaseClient';
 import { initialSettings } from '../data/initialData';
 import { formatError } from '../utils/errorHelper';
+import { mockProducts, mockCategories, mockSubcategories, mockOrders, mockCustomers, mockProfiles } from '../data/mockData';
 
 // Interface for the entire store state, including DB data and client-side cart
 interface StoreState {
@@ -23,6 +24,7 @@ interface StoreState {
   mfaEnabled: boolean; // New state for MFA status
   showSettingsWarning: boolean;
   toasts: Toast[];
+  isMockMode: boolean;
 }
 
 // Interface for the context value, including state and action functions
@@ -101,63 +103,91 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
       setToasts(prev => prev.filter(t => t.id !== id));
   };
 
+  const loadMockData = () => {
+      console.log("Loading Mock Data...");
+      setProducts(mockProducts);
+      setCategories(mockCategories);
+      setSubcategories(mockSubcategories);
+      setSettings(initialSettings);
+      setOrders(mockOrders);
+      setCustomers(mockCustomers);
+      setAllProfiles(mockProfiles);
+      setLoading(false);
+      
+      // Simulate an admin session in mock mode for convenience
+      setIsAdmin(true); 
+  };
+
   const fetchPublicData = async () => {
-    // Use Promise.all for parallel fetching to improve speed and catch network errors early
-    const [
-        { data: productsData, error: productsError },
-        { data: categoriesData, error: categoriesError },
-        { data: subcategoriesData, error: subcategoriesError },
-        { data: settingsData, error: settingsError }
-    ] = await Promise.all([
-        supabase.from('products').select('*, subcategory:subcategories(*, category:categories(*))').order('name', { ascending: true }),
-        supabase.from('categories').select('*').order('name'),
-        supabase.from('subcategories').select('*').order('name'),
-        supabase.from('store_settings').select('*').limit(1).single()
-    ]);
+    // If Mock Mode is explicitly detected or force enabled
+    if (isMockMode) {
+        loadMockData();
+        return;
+    }
 
-    if (productsError) throw new Error(`Products Error: ${formatError(productsError)}`);
-    setProducts(productsData || []);
+    try {
+        // Use Promise.all for parallel fetching to improve speed and catch network errors early
+        const [
+            { data: productsData, error: productsError },
+            { data: categoriesData, error: categoriesError },
+            { data: subcategoriesData, error: subcategoriesError },
+            { data: settingsData, error: settingsError }
+        ] = await Promise.all([
+            supabase.from('products').select('*, subcategory:subcategories(*, category:categories(*))').order('name', { ascending: true }),
+            supabase.from('categories').select('*').order('name'),
+            supabase.from('subcategories').select('*').order('name'),
+            supabase.from('store_settings').select('*').limit(1).single()
+        ]);
 
-    if (categoriesError) throw new Error(`Categories Error: ${formatError(categoriesError)}`);
-    setCategories(categoriesData || []);
+        if (productsError) throw new Error(`Products Error: ${formatError(productsError)}`);
+        setProducts(productsData || []);
 
-    if (subcategoriesError) throw new Error(`Subcategories Error: ${formatError(subcategoriesError)}`);
-    setSubcategories(subcategoriesData || []);
+        if (categoriesError) throw new Error(`Categories Error: ${formatError(categoriesError)}`);
+        setCategories(categoriesData || []);
 
-    // Handle settings
-    if (settingsError && settingsError.code === 'PGRST116') {
-        setSettings(initialSettings);
-        setShowSettingsWarning(true);
-    } else if (settingsError) {
-        throw new Error(`Settings Error: ${formatError(settingsError)}`);
-    } else {
-        // Deep merge the settings from DB with initial settings
-        const mergedSettings: StoreSettings = {
-            ...initialSettings,
-            ...settingsData,
-            invoiceTerms: settingsData.invoiceTerms || initialSettings.invoiceTerms,
-            aboutUsContent: settingsData.aboutUsContent || initialSettings.aboutUsContent,
-            phone: settingsData.phone || initialSettings.phone,
-            socials: { ...initialSettings.socials, ...(settingsData.socials || {}) },
-            shipping: { ...initialSettings.shipping, ...(settingsData.shipping || {}) },
-            tax: { ...initialSettings.tax, ...(settingsData.tax || {}) },
-            payment: {
-                ...initialSettings.payment,
-                ...(settingsData.payment || {}),
-                paypal: { ...initialSettings.payment.paypal, ...(settingsData.payment?.paypal || {}) },
-                bankTransfer: { ...initialSettings.payment.bankTransfer, ...(settingsData.payment?.bankTransfer || {}) },
-                cashOnPickup: { ...initialSettings.payment.cashOnPickup, ...(settingsData.payment?.cashOnPickup || {}) },
-            },
-            seo: { ...initialSettings.seo, ...(settingsData.seo || {}) },
-            analytics: { ...initialSettings.analytics, ...(settingsData.analytics || {}) },
-            recaptcha: { ...initialSettings.recaptcha, ...(settingsData.recaptcha || {}) },
-            security: { ...initialSettings.security, ...(settingsData.security || {}) },
-        };
-        setSettings(mergedSettings);
+        if (subcategoriesError) throw new Error(`Subcategories Error: ${formatError(subcategoriesError)}`);
+        setSubcategories(subcategoriesData || []);
+
+        // Handle settings
+        if (settingsError && settingsError.code === 'PGRST116') {
+            setSettings(initialSettings);
+            setShowSettingsWarning(true);
+        } else if (settingsError) {
+            throw new Error(`Settings Error: ${formatError(settingsError)}`);
+        } else {
+            // Deep merge the settings from DB with initial settings
+            const mergedSettings: StoreSettings = {
+                ...initialSettings,
+                ...settingsData,
+                // Ensure nested objects are merged correctly
+                socials: { ...initialSettings.socials, ...(settingsData.socials || {}) },
+                shipping: { ...initialSettings.shipping, ...(settingsData.shipping || {}) },
+                tax: { ...initialSettings.tax, ...(settingsData.tax || {}) },
+                payment: {
+                    ...initialSettings.payment,
+                    ...(settingsData.payment || {}),
+                    paypal: { ...initialSettings.payment.paypal, ...(settingsData.payment?.paypal || {}) },
+                    bankTransfer: { ...initialSettings.payment.bankTransfer, ...(settingsData.payment?.bankTransfer || {}) },
+                    cashOnPickup: { ...initialSettings.payment.cashOnPickup, ...(settingsData.payment?.cashOnPickup || {}) },
+                },
+                seo: { ...initialSettings.seo, ...(settingsData.seo || {}) },
+                analytics: { ...initialSettings.analytics, ...(settingsData.analytics || {}) },
+                recaptcha: { ...initialSettings.recaptcha, ...(settingsData.recaptcha || {}) },
+                security: { ...initialSettings.security, ...(settingsData.security || {}) },
+                ai: { ...initialSettings.ai, ...(settingsData.ai || {}) },
+            };
+            setSettings(mergedSettings);
+        }
+    } catch (err) {
+        console.error("Fetch failed, falling back to mock data:", err);
+        // Fallback to mock data on ANY fetch error to keep the UI alive
+        loadMockData();
     }
   };
 
   const fetchUserData = async (userId: string) => {
+    if (isMockMode) return;
+
     // Use .maybeSingle() to gracefully handle cases where a profile might not exist yet.
     let { data: profileData, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).maybeSingle();
 
@@ -194,6 +224,8 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
   };
 
   const fetchAdminData = async () => {
+    if (isMockMode) return;
+
     // FIX: Removed 'order' clause on profiles query to prevent crash if 'created_at' column doesn't exist yet.
     // Sorting is handled client-side in the Dashboard component.
     const [{ data: ordersData, error: ordersError }, { data: customersData, error: customersError }, { data: profilesData, error: profilesError }] = await Promise.all([
@@ -215,24 +247,26 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
         setError(null);
         await fetchPublicData();
         
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session) {
-            await fetchUserData(session.user.id);
-            const { data: adminCheck, error: rpcError } = await supabase.rpc('is_admin');
-            if (rpcError) throw new Error(`Admin Check Error: ${formatError(rpcError)}.`);
-            if (adminCheck) {
-                setIsAdmin(true);
-                await fetchAdminData();
+        if (!isMockMode) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                await fetchUserData(session.user.id);
+                const { data: adminCheck, error: rpcError } = await supabase.rpc('is_admin');
+                if (rpcError) throw new Error(`Admin Check Error: ${formatError(rpcError)}.`);
+                if (adminCheck) {
+                    setIsAdmin(true);
+                    await fetchAdminData();
+                } else {
+                    setIsAdmin(false);
+                    setAllProfiles([]);
+                }
             } else {
-                setIsAdmin(false);
-                setAllProfiles([]);
+              setIsAdmin(false);
+              setProfile(null);
+              setUserOrders([]);
+              setAllProfiles([]);
+              setMfaEnabled(false);
             }
-        } else {
-          setIsAdmin(false);
-          setProfile(null);
-          setUserOrders([]);
-          setAllProfiles([]);
-          setMfaEnabled(false);
         }
     } catch (err: any) {
         console.error("Error fetching initial data:", err);
@@ -243,6 +277,11 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
   };
 
   useEffect(() => {
+    if (isMockMode) {
+        initializeData();
+        return;
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
         // Re-initialize all data on sign in or initial session
         if (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') {
@@ -262,23 +301,24 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
   
   const addOrder = async (order: Omit<Order, 'id'>, userId: string | null): Promise<Order> => {
     const newId = `order${Date.now()}`;
-    const orderPayload = { ...order, id: newId, userId };
-
-    // FIX: Removed .select() call.
-    // Anonymous users (Guest Checkout) have INSERT permissions but NOT SELECT permissions for orders.
-    // Calling .select() immediately after insert throws a permissions error for guests.
-    const { error } = await supabase.from('orders').insert([orderPayload]);
-    
-    if (error) throw new Error(formatError(error));
-    
-    // Manually construct the return object since we can't select it back
     const newOrder: Order = {
-        ...orderPayload,
+        ...order,
+        id: newId,
+        userId,
         created_at: new Date().toISOString(),
         status: 'Pending',
         shippingCost: order.shippingCost || 0,
     } as Order;
 
+    if (isMockMode) {
+        setOrders(prev => [newOrder, ...prev]);
+        if(userId) setUserOrders(prev => [newOrder, ...prev]);
+        return newOrder;
+    }
+
+    const { error } = await supabase.from('orders').insert([{ ...order, id: newId, userId }]);
+    if (error) throw new Error(formatError(error));
+    
     // Add to both admin and user order lists
     setOrders(prev => [newOrder, ...prev]);
     if(userId) setUserOrders(prev => [newOrder, ...prev]);
@@ -287,6 +327,12 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
   };
   
   const updateProfile = async (updates: { full_name?: string; avatar_url?: string; shipping_address?: Address; billing_address?: Address }): Promise<Profile> => {
+      if (isMockMode) {
+          const updated = { ...profile, ...updates } as Profile;
+          setProfile(updated);
+          return updated;
+      }
+
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
       
@@ -305,26 +351,46 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
       return data;
   };
 
-  // ... other async actions (addProduct, updateProduct, etc. no major changes)
   const addProduct = async (product: Omit<Product, 'id' | 'created_at' | 'subcategory'> & { subcategory_id: string | null }): Promise<Product> => {
-    // REMOVED: Manual ID generation. Let the DB handle it via DEFAULT gen_random_uuid()
+    if (isMockMode) {
+        // @ts-ignore
+        const newProduct = { ...product, id: `prod_${Date.now()}`, subcategory: subcategories.find(s => s.id === product.subcategory_id) };
+        // @ts-ignore
+        setProducts(prev => [...prev, newProduct]);
+        // @ts-ignore
+        return newProduct;
+    }
     const { data, error } = await supabase.from('products').insert([{ ...product }]).select('*, subcategory:subcategories(*, category:categories(*))').single();
     if (error) throw new Error(formatError(error));
     setProducts(prev => [...prev, data]);
     return data;
   };
   const updateProduct = async (product: Omit<Product, 'subcategory'> & { subcategory_id: string | null }): Promise<Product> => {
+    if (isMockMode) {
+        // @ts-ignore
+        setProducts(prev => prev.map(p => p.id === product.id ? { ...p, ...product } : p));
+        // @ts-ignore
+        return { ...product } as Product;
+    }
     const { data, error } = await supabase.from('products').update(product).eq('id', product.id).select('*, subcategory:subcategories(*, category:categories(*))').single();
     if (error) throw new Error(formatError(error));
     setProducts(prev => prev.map(p => p.id === product.id ? data : p));
     return data;
   };
   const deleteProduct = async (productId: string): Promise<void> => {
+    if (isMockMode) {
+        setProducts(prev => prev.filter(p => p.id !== productId));
+        return;
+    }
     const { error } = await supabase.from('products').delete().eq('id', productId);
     if (error) throw new Error(formatError(error));
     setProducts(prev => prev.filter(p => p.id !== productId));
   };
   const updateSettings = async (newSettings: StoreSettings): Promise<StoreSettings> => {
+    if (isMockMode) {
+        setSettings(newSettings);
+        return newSettings;
+    }
     const settingsPayload = { ...newSettings, id: 1 };
     const { data, error } = await supabase.from('store_settings').upsert(settingsPayload).select().single();
     if (error) throw new Error(formatError(error));
@@ -333,31 +399,32 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
     return data;
   };
   const addCustomer = async (customer: Omit<Customer, 'id' | 'created_at'>): Promise<Customer> => {
-    // FIX: Use maybeSingle() instead of single() to prevent errors if no customer found.
-    // Note: For guest users, this select might fail due to RLS (Admins only), returning error.
-    // We ignore the error/null data here and proceed to create a new customer record if not found/accessible.
-    const { data: existing } = await supabase.from('customers').select('id').eq('email', customer.email).limit(1).maybeSingle();
-    
-    if (existing) return { ...customer, id: existing.id };
-
     const newId = `cust${Date.now()}`;
-    
-    // FIX: Removed .select() call.
-    // Anonymous users cannot SELECT customers, only INSERT.
-    const { error } = await supabase.from('customers').insert([{ ...customer, id: newId }]);
-    
-    if (error) throw new Error(formatError(error));
-    
     const newCustomer = { 
         ...customer, 
         id: newId, 
         created_at: new Date().toISOString() 
     };
+
+    if (isMockMode) {
+        setCustomers(prev => [...prev, newCustomer]);
+        return newCustomer;
+    }
+
+    const { data: existing } = await supabase.from('customers').select('id').eq('email', customer.email).limit(1).maybeSingle();
+    if (existing) return { ...customer, id: existing.id };
+
+    const { error } = await supabase.from('customers').insert([{ ...customer, id: newId }]);
+    if (error) throw new Error(formatError(error));
     
     setCustomers(prev => [...prev, newCustomer]);
     return newCustomer;
   };
   const updateOrderStatus = async (orderId: string, status: Order['status']): Promise<Order> => {
+      if (isMockMode) {
+          setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+          return orders.find(o => o.id === orderId)!;
+      }
       const { data, error } = await supabase.from('orders').update({ status }).eq('id', orderId).select().single();
       if (error) throw new Error(formatError(error));
       setOrders(prev => prev.map(o => o.id === orderId ? data : o));
@@ -365,35 +432,63 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
       return data;
   };
   const addCategory = async (name: string): Promise<Category> => {
+    if (isMockMode) {
+        const newCat = { id: `cat_${Date.now()}`, name };
+        setCategories(prev => [...prev, newCat]);
+        return newCat;
+    }
     const { data, error } = await supabase.from('categories').insert({ name }).select().single();
     if (error) throw new Error(formatError(error));
     setCategories(prev => [...prev, data]);
     return data;
   };
   const updateCategory = async (id: string, name: string): Promise<Category> => {
+    if (isMockMode) {
+        const updated = { id, name };
+        setCategories(prev => prev.map(c => c.id === id ? updated : c));
+        return updated;
+    }
     const { data, error } = await supabase.from('categories').update({ name }).eq('id', id).select().single();
     if (error) throw new Error(formatError(error));
     setCategories(prev => prev.map(c => c.id === id ? data : c));
     return data;
   };
   const deleteCategory = async (id: string): Promise<void> => {
+    if (isMockMode) {
+        setCategories(prev => prev.filter(c => c.id !== id));
+        return;
+    }
     const { error } = await supabase.from('categories').delete().eq('id', id);
     if (error) throw new Error(formatError(error));
     setCategories(prev => prev.filter(c => c.id !== id));
   };
   const addSubcategory = async (name: string, category_id: string): Promise<Subcategory> => {
+    if (isMockMode) {
+        const newSub = { id: `sub_${Date.now()}`, name, category_id };
+        setSubcategories(prev => [...prev, newSub]);
+        return newSub;
+    }
     const { data, error } = await supabase.from('subcategories').insert({ name, category_id }).select().single();
     if (error) throw new Error(formatError(error));
     setSubcategories(prev => [...prev, data]);
     return data;
   };
   const updateSubcategory = async (id: string, name: string, category_id: string): Promise<Subcategory> => {
+    if (isMockMode) {
+        const updated = { id, name, category_id };
+        setSubcategories(prev => prev.map(s => s.id === id ? updated : s));
+        return updated;
+    }
     const { data, error } = await supabase.from('subcategories').update({ name, category_id }).eq('id', id).select().single();
     if (error) throw new Error(formatError(error));
     setSubcategories(prev => prev.map(s => s.id === id ? data : s));
     return data;
   };
   const deleteSubcategory = async (id: string): Promise<void> => {
+    if (isMockMode) {
+        setSubcategories(prev => prev.filter(s => s.id !== id));
+        return;
+    }
     const { error } = await supabase.from('subcategories').delete().eq('id', id);
     if (error) throw new Error(formatError(error));
     setSubcategories(prev => prev.filter(s => s.id !== id));
@@ -417,6 +512,7 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
     mfaEnabled,
     showSettingsWarning,
     toasts,
+    isMockMode,
     dispatchCartAction,
     addProduct,
     updateProduct,

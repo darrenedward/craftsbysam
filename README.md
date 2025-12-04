@@ -3,6 +3,20 @@
 
 This project is a fully customizable e-commerce platform connected to a Supabase backend. All data for products, orders, customers, and store settings is fetched from and saved to your Supabase database.
 
+## 🔐 Environment Variables (Security Best Practice)
+
+To keep your project secure, never commit API keys to code. Instead, use a `.env` file.
+
+1.  Create a file named `.env` in the root directory of your project.
+2.  Add the following keys (get these from your Supabase Project Settings > API):
+
+```env
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-public-anon-key
+```
+
+**Note:** The `.env` file is already added to `.gitignore`, so your secrets will not be uploaded to GitHub.
+
 ## 🚀 Getting Started: Supabase Setup
 
 To run this application, you need a Supabase project. Follow these steps to set it up correctly.

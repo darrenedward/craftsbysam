@@ -16,14 +16,13 @@ import VoiceAIChatWidget from './storefront/VoiceAIChatWidget';
 import Sidebar from './storefront/Sidebar';
 import FeaturedProducts from './storefront/FeaturedProducts';
 import HelpPage from './storefront/HelpPage';
+import { Page } from '../types';
 
 interface StorefrontProps {
   goToAdmin: () => void;
   goToAccount: () => void;
   session: any | null;
 }
-
-export type Page = 'home' | 'terms' | 'privacy' | 'contact' | 'about' | 'checkout' | 'orderConfirmation' | 'help';
 
 const Storefront: React.FC<StorefrontProps> = ({ goToAdmin, goToAccount, session }) => {
   const { products, categories, subcategories } = useStore();

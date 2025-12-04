@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { useStore } from '../../hooks/useStore';
-import { Page } from '../Storefront';
+import { Page } from '../../types';
 
 // Brand-colored SVG icons
 const InstagramIcon = () => (

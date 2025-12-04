@@ -6,18 +6,20 @@
 export const formatError = (error: any): string => {
   if (!error) return 'An unknown error occurred.';
   
+  const networkErrorMsg = "Connection Failed. Please check: 1. Your internet connection. 2. Turn off Ad Blockers (uBlock, etc) - they often block Supabase database requests. 3. Check your VPN.";
+
   // If it's already a string, return it
   if (typeof error === 'string') {
-      if (error.includes("NetworkError") || error.includes("Failed to fetch")) {
-          return "Network Connection Error. Please check your internet connection. If you are using an Ad Blocker, please disable it for this site as it may be blocking the database.";
+      if (error.includes("NetworkError") || error.includes("Failed to fetch") || error.includes("Load failed")) {
+          return networkErrorMsg;
       }
       return error;
   }
 
   // Standard JS Error
   if (error instanceof Error) {
-      if (error.message.includes("NetworkError") || error.message.includes("Failed to fetch")) {
-          return "Network Connection Error. Please check your internet connection or disable Ad Blockers.";
+      if (error.message.includes("NetworkError") || error.message.includes("Failed to fetch") || error.message.includes("Load failed")) {
+          return networkErrorMsg;
       }
       return error.message;
   }

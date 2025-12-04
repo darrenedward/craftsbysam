@@ -1,5 +1,6 @@
 
 
+
 // A structured address object
 export interface Address {
   street: string;
@@ -202,3 +203,5 @@ export type CartAction =
   | { type: 'REMOVE_FROM_CART'; payload: string } // payload is cartItemId
   | { type: 'ADD_MULTIPLE_TO_CART'; payload: CartItem[] }
   | { type: 'CLEAR_CART' };
+
+export type Page = 'home' | 'terms' | 'privacy' | 'contact' | 'about' | 'checkout' | 'orderConfirmation' | 'help';

@@ -1,11 +1,27 @@
+
 import { createClient } from '@supabase/supabase-js';
 
-// These details should be in a .env file, but are hardcoded here for this example.
-export const supabaseUrl = 'https://pnltfafygamumaxsiulm.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBubHRmYWZ5Z2FtdW1heHNpdWxtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcxOTUwNDcsImV4cCI6MjA3Mjc3MTA0N30.dU2T99u6_vTfCSMpdzW3Fe4U92icoan0apC2lWfPxWs';
+// STANDARD PRACTICE: Access environment variables via import.meta.env (Vite)
+const env = (import.meta as any).env;
+
+export const supabaseUrl = env?.VITE_SUPABASE_URL || '';
+export const supabaseAnonKey = env?.VITE_SUPABASE_ANON_KEY || '';
+
+// Detect if we are in a demo/mock environment based on the URL or missing keys
+export const isMockMode = 
+  !supabaseUrl || 
+  supabaseUrl.includes('placeholder') || 
+  supabaseUrl.includes('demo.supabase') || 
+  supabaseUrl.includes('your-project-id');
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Supabase URL and Anon Key are required.');
+  console.warn(
+    "WARNING: Supabase configuration is missing. Defaulting to Demo Mode."
+  );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey) as any;
+// Initialize with valid URL format if missing to prevent createClient crash
+const urlToUse = supabaseUrl || 'https://demo.supabase.co';
+const keyToUse = supabaseAnonKey || 'demo-key';
+
+export const supabase = createClient(urlToUse, keyToUse);
