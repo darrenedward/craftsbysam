@@ -1,0 +1,7 @@
+{
+  "name": "Crafts By Sam - Custom Storefront",
+  "description": "A fully customizable e-commerce platform for 'Crafts By Sam'. Manage products, orders, clients, and personalize the storefront's appearance, including logos, colors, and business details, all from an intuitive admin panel.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
