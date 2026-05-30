@@ -1,0 +1,12 @@
+# Robots.txt file for Crafts By Sam
+# Allow all crawlers to access the site
+
+User-agent: *
+Allow: /
+
+# Disallow admin areas
+Disallow: /admin
+Disallow: /api
+
+# Sitemap location (if applicable)
+# Sitemap: https://craftsbysam.com/sitemap.xml
