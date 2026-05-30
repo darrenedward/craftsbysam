@@ -18,8 +18,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
   const [loading, setLoading] = useState(false);
   
   // PRE-FILLED FOR DEV (Only applied in login view initially)
-  const [email, setEmail] = useState('darrenedwardhouseofjones@gmail.com');
-  const [password, setPassword] = useState('fcA*5-c0nwmFF!!');
+  // SECURITY: Never hardcode production credentials
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [mfaCode, setMfaCode] = useState('');
   
   const [rememberMe, setRememberMe] = useState(false);
