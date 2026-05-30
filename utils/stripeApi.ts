@@ -1,4 +1,5 @@
 import { supabase } from '../supabaseClient';
+import { logger } from './logger';
 
 export interface CreatePaymentIntentResponse {
   clientSecret: string;
@@ -17,13 +18,13 @@ export const createPaymentIntent = async (
     });
 
     if (error) {
-      console.error('Supabase function error:', error);
+      logger.error('Supabase function error:', error);
       return { clientSecret: '', paymentIntentId: '', error: error.message };
     }
 
     return data;
   } catch (error: any) {
-    console.error('Payment intent creation failed:', error);
+    logger.error('Payment intent creation failed:', error);
     return { clientSecret: '', paymentIntentId: '', error: error.message || 'Failed to create payment intent' };
   }
 };

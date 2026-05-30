@@ -1,4 +1,5 @@
 
+import { logger } from '../../utils/logger';
 import React from 'react';
 import { useStore } from '../../hooks/useStore';
 import { Order } from '../../types';
@@ -11,7 +12,7 @@ const OrderManager = () => {
         try {
             await updateOrderStatus(orderId, newStatus);
         } catch (error) {
-            console.error("Failed to update order status:", error);
+            logger.error("Failed to update order status:", error);
             alert(`There was an error updating the order status: ${formatError(error)}`);
         }
     };

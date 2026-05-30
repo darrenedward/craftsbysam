@@ -1,4 +1,5 @@
 
+import { logger } from '../../../utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../hooks/useStore';
 import { StoreSettings } from '../../../types';
@@ -35,7 +36,7 @@ const SocialSettings = () => {
           await updateSettings(settings);
           showToast("Social media settings saved successfully", 'success');
       } catch (err) {
-          console.error(err);
+          logger.error(err);
           showToast(`Failed to save settings: ${formatError(err)}`, 'error');
       } finally {
           setSaving(false);

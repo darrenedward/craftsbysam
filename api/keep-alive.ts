@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import { logger } from '../utils/logger';
 
 export const config = {
   runtime: 'edge',
@@ -36,7 +37,7 @@ export default async function handler(req: Request) {
       .limit(1);
 
     if (error) {
-      console.error('Keep-alive query error:', error);
+      logger.error('Keep-alive query error:', error);
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -56,7 +57,7 @@ export default async function handler(req: Request) {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Keep-alive error:', error);
+    logger.error('Keep-alive error:', error);
     return new Response(
       JSON.stringify({ 
         success: false, 

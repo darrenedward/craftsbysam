@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { logger } from '../../../utils/logger';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '../../ui/Button';
 import { createPaymentIntent } from '../../../utils/stripeApi';
@@ -55,7 +56,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
       });
 
       if (confirmError) {
-        console.error('Payment confirmation error:', confirmError);
+        logger.error('Payment confirmation error:', confirmError);
         setError(`Payment failed: ${confirmError.message}`);
         setProcessing(false);
         return;
@@ -66,7 +67,7 @@ export const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
         await onSubmit({ id: paymentIntentId, status: paymentIntent.status });
       }
     } catch (error: any) {
-      console.error('Payment processing error:', error);
+      logger.error('Payment processing error:', error);
       setError(`Payment error: ${error.message || 'Unknown error'}`);
     } finally {
       setProcessing(false);

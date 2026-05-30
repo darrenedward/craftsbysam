@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { logger } from '../../utils/logger';
 import { useStore } from '../../hooks/useStore';
 import { Button } from '../ui/Button';
 import { Customer, Address, Order } from '../../types';
@@ -167,7 +168,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
       showToast("Order placed successfully!", 'success');
       onOrderPlaced(savedOrder.id);
     } catch (error: any) {
-      console.error("Failed to place order:", error);
+      logger.error("Failed to place order:", error);
       showToast(`Failed to place order: ${formatError(error)}`, 'error');
     } finally {
       setIsProcessing(false);

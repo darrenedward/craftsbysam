@@ -21,8 +21,8 @@
     "@supabase/supabase-js": "^2.77.0",
     "@vitejs/plugin-react": "^5.1.1",
     "dompurify": "^3.4.7",
-    "jspdf": "^2.5.1",
-    "jspdf-autotable": "^3.8.2",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "vite": "^7.2.6"
@@ -31,6 +31,7 @@
     "@playwright/test": "^1.60.0",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "terser": "^5.48.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

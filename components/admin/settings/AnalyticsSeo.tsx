@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../../../utils/logger';
 import { useStore } from '../../../hooks/useStore';
 import { StoreSettings } from '../../../types';
 import { Button } from '../../ui/Button';

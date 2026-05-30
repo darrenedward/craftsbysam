@@ -1,4 +1,5 @@
 
+import { logger } from '../../../utils/logger';
 
 
 import React, { useState, useEffect } from 'react';
@@ -44,7 +45,7 @@ const SecuritySettings = () => {
           await updateSettings(settings);
           showToast("Security settings saved successfully", 'success');
       } catch (err) {
-          console.error(err);
+          logger.error(err);
           showToast(`Failed to save security settings: ${formatError(err)}`, 'error');
       }
     }

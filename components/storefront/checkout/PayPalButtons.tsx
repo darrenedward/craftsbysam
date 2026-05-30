@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { logger } from '../../../utils/logger';
 
 interface PayPalButtonsProps {
   amount: number;
@@ -60,7 +61,7 @@ export const PayPalButtons: React.FC<PayPalButtonsProps> = ({
           });
         },
         onError: (err: any) => {
-          console.error("PayPal Error:", err);
+          logger.error("PayPal Error:", err);
           onError(err);
         }
       }).render(buttonContainerRef.current);

@@ -1,4 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { logger } from '../../../utils/logger';
 import { Stripe } from 'https://esm.sh/stripe@14.21.0'
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY') || '', {
@@ -44,7 +45,7 @@ serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   } catch (error: any) {
-    console.error('PaymentIntent creation error:', error)
+    logger.error('PaymentIntent creation error:', error)
     return new Response(
       JSON.stringify({ error: error.message || 'Failed to create PaymentIntent' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

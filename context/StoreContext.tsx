@@ -1,10 +1,16 @@
 
 import React, { createContext, useReducer, ReactNode, useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 import { Product, StoreSettings, CartItem, Order, Customer, CartAction, Category, Subcategory, Profile, Address, Toast } from '../types';
+import { logger } from '../utils/logger';
 import { supabase, supabaseUrl, isMockMode } from '../supabaseClient';
+import { logger } from '../utils/logger';
 import { initialSettings } from '../data/initialData';
+import { logger } from '../utils/logger';
 import { formatError } from '../utils/errorHelper';
+import { logger } from '../utils/logger';
 import { mockProducts, mockCategories, mockSubcategories, mockOrders, mockCustomers, mockProfiles } from '../data/mockData';
+import { logger } from '../utils/logger';
 
 // Interface for the entire store state, including DB data and client-side cart
 interface StoreState {
@@ -104,7 +110,7 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
   };
 
   const loadMockData = () => {
-      console.log("Loading Mock Data...");
+      logger.log("Loading Mock Data...");
       setProducts(mockProducts);
       setCategories(mockCategories);
       setSubcategories(mockSubcategories);
@@ -179,7 +185,7 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
             setSettings(mergedSettings);
         }
     } catch (err) {
-        console.error("Fetch failed, falling back to mock data:", err);
+        logger.error("Fetch failed, falling back to mock data:", err);
         // Fallback to mock data on ANY fetch error to keep the UI alive
         loadMockData();
     }
@@ -198,7 +204,7 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
     
     // If the profile is missing (e.g., for a user created before the trigger was active), create it now.
     if (!profileData) {
-      console.log(`Profile not found for user ${userId}. Creating one now.`);
+      logger.log(`Profile not found for user ${userId}. Creating one now.`);
       const { data: newProfile, error: insertError } = await supabase
         .from('profiles')
         .insert({ id: userId })
@@ -269,7 +275,7 @@ export const StoreProvider: React.FC<{children: ReactNode}> = ({ children }) => 
             }
         }
     } catch (err: any) {
-        console.error("Error fetching initial data:", err);
+        logger.error("Error fetching initial data:", err);
         setError(formatError(err));
     } finally {
         setLoading(false);

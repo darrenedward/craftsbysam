@@ -1,4 +1,5 @@
 
+import { logger } from '../../../utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../hooks/useStore';
@@ -39,7 +40,7 @@ const AiSettings = () => {
           await updateSettings(settings);
           showToast("AI settings saved successfully", 'success');
       } catch (err) {
-          console.error(err);
+          logger.error(err);
           showToast(`Failed to save AI settings: ${formatError(err)}`, 'error');
       }
     }

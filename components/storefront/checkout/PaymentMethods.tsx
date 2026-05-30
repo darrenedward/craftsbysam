@@ -1,4 +1,5 @@
 import React from 'react';
+import { logger } from '../../../utils/logger';
 import { Elements } from '@stripe/react-stripe-js';
 import { getStripe } from '../../../utils/stripeLoader';
 import { PayPalButtons } from './PayPalButtons';
@@ -113,7 +114,7 @@ export const PaymentMethods: React.FC<PaymentMethodsProps> = ({
             amount={total}
             clientId={settings.payment.paypal.clientId}
             onSuccess={onPlaceOrder}
-            onError={(err) => console.error(`Payment Error: ${JSON.stringify(err)}`)}
+            onError={(err) => logger.error(`Payment Error: ${JSON.stringify(err)}`)}
           />
         ) : paymentMethod === 'Stripe' && settings?.payment?.stripe?.publishableKey ? (
           <Elements stripe={getStripe(settings.payment.stripe.publishableKey)}>

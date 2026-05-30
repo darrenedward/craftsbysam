@@ -1,4 +1,5 @@
 
+import { logger } from '../../utils/logger';
 
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../hooks/useStore';
@@ -66,7 +67,7 @@ const SettingsEditor = () => {
 
     if (uploadError) {
         setError(uploadError.message);
-        console.error('Error uploading logo:', uploadError);
+        logger.error('Error uploading logo:', uploadError);
     } else {
         const publicUrl = getPublicUrl(fileName);
         setSettings(prev => prev ? ({ ...prev, logoUrl: publicUrl }) : null);

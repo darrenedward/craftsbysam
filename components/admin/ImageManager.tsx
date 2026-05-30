@@ -1,4 +1,5 @@
 
+import { logger } from '../../utils/logger';
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase, supabaseUrl } from '../../supabaseClient';
 import { Button } from '../ui/Button';
@@ -70,7 +71,7 @@ const ImageManager: React.FC<ImageManagerProps> = ({ onSelectImage }) => {
         });
 
         if (error) {
-            console.error('Error fetching images:', error);
+            logger.error('Error fetching images:', error);
             setError(`Could not fetch images. ${formatError(error)}`);
         } else {
             setImages(data || []);
@@ -106,7 +107,7 @@ const ImageManager: React.FC<ImageManagerProps> = ({ onSelectImage }) => {
             const errMsg = formatError(uploadError);
             setError(errMsg);
             showToast(`Error uploading image: ${errMsg}`, 'error');
-            console.error('Error uploading image:', uploadError);
+            logger.error('Error uploading image:', uploadError);
         } else {
             // Use unshift to add the new image to the top of the list for immediate feedback
             const newImage: FileObject = { id: fileName, name: fileName, created_at: new Date().toISOString() };
@@ -127,7 +128,7 @@ const ImageManager: React.FC<ImageManagerProps> = ({ onSelectImage }) => {
             const errMsg = formatError(deleteError);
             setError(errMsg);
             showToast(`Error deleting image: ${errMsg}`, 'error');
-            console.error('Error deleting image:', deleteError);
+            logger.error('Error deleting image:', deleteError);
         } else {
             setImages(images.filter(img => img.name !== imageName));
             showToast("Image deleted successfully", 'success');

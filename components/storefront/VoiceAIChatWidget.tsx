@@ -1,4 +1,5 @@
 
+import { logger } from '../../utils/logger';
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../hooks/useStore';
 import { getAiChatResponse } from '../../services/geminiService';
@@ -51,7 +52,7 @@ const VoiceAIChatWidget: React.FC<VoiceAIChatWidgetProps> = ({ openCart }) => {
     recognitionRef.current.onstart = () => setIsListening(true);
     recognitionRef.current.onend = () => setIsListening(false);
     recognitionRef.current.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
+        logger.error('Speech recognition error:', event.error);
         setIsListening(false);
     };
 

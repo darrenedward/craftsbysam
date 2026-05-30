@@ -1,4 +1,5 @@
 
+import { logger } from '../../../utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../hooks/useStore';
 import { StoreSettings } from '../../../types';
@@ -31,7 +32,7 @@ const AboutSettings = () => {
           await updateSettings(settings);
           showToast("About Us content saved successfully", 'success');
       } catch (err) {
-          console.error(err);
+          logger.error(err);
           showToast(`Failed to save content: ${formatError(err)}`, 'error');
       } finally {
           setSaving(false);

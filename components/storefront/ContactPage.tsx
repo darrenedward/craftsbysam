@@ -1,4 +1,5 @@
 
+import { logger } from '../../utils/logger';
 import React, { useState, useEffect, useRef } from 'react';
 import { useStore } from '../../hooks/useStore';
 import { Button } from '../ui/Button';
@@ -53,7 +54,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
                         });
                         widgetIdRef.current = id;
                      } catch (e) {
-                         console.error("Recaptcha render error:", e);
+                         logger.error("Recaptcha render error:", e);
                      }
                  }
             }
@@ -105,7 +106,7 @@ const ContactPage: React.FC<ContactPageProps> = ({ onBack }) => {
     }
 
     // In a real application, this would send an email via an API which verifies the secret key.
-    console.log('Form submitted:', formState, 'Captcha Token:', captchaToken);
+    logger.log('Form submitted:', formState, 'Captcha Token:', captchaToken);
     
     // Clear form and show toast
     setFormState({ name: '', email: '', subject: '', message: '' });

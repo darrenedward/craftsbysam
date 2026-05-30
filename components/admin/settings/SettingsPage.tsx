@@ -1,4 +1,5 @@
 
+import { logger } from '../../../utils/logger';
 
 
 import React, { useState, useEffect } from 'react';
@@ -57,7 +58,7 @@ const SettingsPage = () => {
         await updateSettings(settings);
         showToast("Settings saved successfully!", 'success');
     } catch (error) {
-        console.error("Failed to save settings:", error);
+        logger.error("Failed to save settings:", error);
         showToast(`Failed to save settings: ${formatError(error)}`, 'error');
     } finally {
         setSaving(false);

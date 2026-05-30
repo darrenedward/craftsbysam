@@ -1,4 +1,5 @@
 
+import { logger } from '../../utils/logger';
 
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
@@ -89,7 +90,7 @@ const ProductManager = () => {
                 await deleteProduct(productId);
                 showToast("Product deleted successfully.", 'success');
             } catch (error) {
-                console.error("Failed to delete product:", error);
+                logger.error("Failed to delete product:", error);
                 showToast(`Error deleting product: ${formatError(error)}`, 'error');
             }
         }
@@ -416,7 +417,7 @@ const ProductForm: React.FC<{ product: Product | null, onDone: () => void }> = (
             }
             onDone();
         } catch (error: any) {
-            console.error("Failed to save product:", error);
+            logger.error("Failed to save product:", error);
             showToast(`Failed to save product: ${formatError(error)}`, 'error');
         } finally {
             setIsSaving(false);

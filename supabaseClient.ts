@@ -1,5 +1,6 @@
 
 import { createClient } from '@supabase/supabase-js';
+import { logger } from './utils/logger';
 
 // STANDARD PRACTICE: Access environment variables via import.meta.env (Vite)
 const env = (import.meta as any).env;
@@ -15,7 +16,7 @@ export const isMockMode =
   supabaseUrl.includes('your-project-id');
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
+  logger.warn(
     "WARNING: Supabase configuration is missing. Defaulting to Demo Mode."
   );
 }

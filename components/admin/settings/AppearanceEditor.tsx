@@ -1,4 +1,5 @@
 
+import { logger } from '../../../utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../hooks/useStore';
 import { StoreSettings } from '../../../types';
@@ -53,7 +54,7 @@ const AppearanceEditor = () => {
 
     if (uploadError) {
         setError(uploadError.message);
-        console.error(`Error uploading ${type}:`, uploadError);
+        logger.error(`Error uploading ${type}:`, uploadError);
     } else {
         const publicUrl = getPublicUrl(fileName);
         setSettings(prev => {

@@ -2,6 +2,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Order, Customer, StoreSettings } from '../types';
+import { logger } from '../utils/logger';
 
 // Helper to fetch image as base64 for jsPDF
 const getBase64ImageFromUrl = async (imageUrl: string): Promise<string | null> => {
@@ -25,7 +26,7 @@ const getBase64ImageFromUrl = async (imageUrl: string): Promise<string | null> =
             reader.readAsDataURL(blob);
         });
     } catch (e) {
-        console.warn("Image fetch failed for PDF (skipping image):", e);
+        logger.warn("Image fetch failed for PDF (skipping image):", e);
         return null;
     }
 };
@@ -59,7 +60,7 @@ export const generateInvoicePdf = async (
                 doc.addImage(base64Logo, 'PNG', margin, 10, logoWidth, logoHeight);
                 textStartX = margin + logoWidth + 5; // Shift text to the right of logo
             } catch (err) {
-                console.warn("Could not add logo to PDF:", err);
+                logger.warn("Could not add logo to PDF:", err);
             }
         }
     }

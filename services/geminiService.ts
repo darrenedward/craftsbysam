@@ -1,14 +1,14 @@
 
 
 
-
 import { GoogleGenAI, FunctionDeclaration, Type } from "@google/genai";
 import { Product, ChatMessage } from '../types';
+import { logger } from '../utils/logger';
 
 export const generateDescription = async (keywords: string, apiKey?: string, modelName: string = 'gemini-2.5-flash'): Promise<string> => {
   const key = apiKey || process.env.API_KEY;
   if (!key) {
-    console.error("API_KEY not configured.");
+    logger.error("API_KEY not configured.");
     return "API key not configured. Please add your Gemini API key in the Settings > AI Integration tab.";
   }
   const ai = new GoogleGenAI({ apiKey: key });
@@ -26,7 +26,7 @@ export const generateDescription = async (keywords: string, apiKey?: string, mod
     });
     return response.text || "Could not generate description.";
   } catch (error) {
-    console.error("Error generating description:", error);
+    logger.error("Error generating description:", error);
     return "There was an error generating the description. Please check your API key and try again.";
   }
 };
@@ -66,7 +66,7 @@ export const getAiChatResponse = async (
 ): Promise<{ text: string; functionCall?: { name: string; args: any } }> => {
     const key = apiKey || process.env.API_KEY;
     if (!key) {
-        console.error("API_KEY not configured.");
+        logger.error("API_KEY not configured.");
         return { text: "I'm sorry, my AI brain is not configured correctly. Please tell the store owner to add the API Key in Settings." };
     }
     const ai = new GoogleGenAI({ apiKey: key });
@@ -134,7 +134,7 @@ export const getAiChatResponse = async (
 
         return { text: response.text || "I didn't quite catch that." };
     } catch (error) {
-        console.error("Error getting AI chat response:", error);
+        logger.error("Error getting AI chat response:", error);
         return { text: "I'm having a little trouble thinking right now. Please try again in a moment." };
     }
 };

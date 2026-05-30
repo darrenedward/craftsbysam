@@ -1,4 +1,5 @@
 
+import { logger } from '../../utils/logger';
 import React, { useState } from 'react';
 import { useStore } from '../../hooks/useStore';
 import { Button } from '../ui/Button';
@@ -40,7 +41,7 @@ const CategoryManager = () => {
             setNewCategoryName('');
             showToast("Category added successfully", 'success');
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             showToast(`Failed to add category: ${formatError(error)}`, 'error');
         } finally {
             setIsSavingCategory(false);
@@ -56,7 +57,7 @@ const CategoryManager = () => {
             setEditingCategory(null);
             showToast("Category updated successfully", 'success');
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             showToast(`Failed to update category: ${formatError(error)}`, 'error');
         } finally {
             setIsSavingCategory(false);
@@ -74,7 +75,7 @@ const CategoryManager = () => {
                 await deleteCategory(category.id);
                 showToast("Category deleted successfully", 'success');
             } catch (error) {
-                console.error(error);
+                logger.error(error);
                 showToast(`Failed to delete category: ${formatError(error)}`, 'error');
             }
         }
@@ -110,7 +111,7 @@ const CategoryManager = () => {
             }
             closeSubcategoryModal();
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             showToast(`Failed to save subcategory: ${formatError(error)}`, 'error');
         } finally {
             setIsSavingSubcategory(false);
@@ -128,7 +129,7 @@ const CategoryManager = () => {
                 await deleteSubcategory(subcategory.id);
                 showToast("Subcategory deleted successfully", 'success');
             } catch (error) {
-                console.error(error);
+                logger.error(error);
                 showToast(`Failed to delete subcategory: ${formatError(error)}`, 'error');
             }
         }

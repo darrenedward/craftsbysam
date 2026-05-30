@@ -1,4 +1,5 @@
 
+import { logger } from '../../../utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../hooks/useStore';
 import { StoreSettings } from '../../../types';
@@ -32,7 +33,7 @@ const BusinessSettings = () => {
         await updateSettings(settings);
         showToast("Business settings saved successfully", 'success');
       } catch (err) {
-        console.error(err);
+        logger.error(err);
         showToast(`Failed to save settings: ${formatError(err)}`, 'error');
       } finally {
         setSaving(false);

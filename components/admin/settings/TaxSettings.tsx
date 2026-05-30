@@ -1,4 +1,5 @@
 
+import { logger } from '../../../utils/logger';
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../../../hooks/useStore';
 import { StoreSettings } from '../../../types';
@@ -38,7 +39,7 @@ const TaxSettings = () => {
           await updateSettings(settings);
           showToast("Tax settings saved successfully", 'success');
       } catch (err) {
-          console.error(err);
+          logger.error(err);
           showToast(`Failed to save tax settings: ${formatError(err)}`, 'error');
       }
     }
