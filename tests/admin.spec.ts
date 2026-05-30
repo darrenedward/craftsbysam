@@ -1,10 +1,6 @@
 import { test, expect } from './fixtures';
-import { TestHelpers } from './helpers/testHelpers';
 
 test.describe('Admin Panel', () => {
-  test.beforeEach(async ({ page }) => {
-    await TestHelpers.clearLocalStorage(page);
-  });
 
   test('should show admin access option', async ({ storefrontPage }) => {
     await storefrontPage.goto();

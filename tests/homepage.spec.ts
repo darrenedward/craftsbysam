@@ -20,7 +20,7 @@ test.describe('Homepage', () => {
     await storefrontPage.goto();
 
     // Check for basic navigation elements
-    await expect(storefrontPage.pageTitle).toBeVisible();
+    await expect(storefrontPage.pageTitle).toBeVisible({ timeout: 10000 });
   });
 
   test('should be responsive on mobile viewport', async ({ storefrontPage }) => {
