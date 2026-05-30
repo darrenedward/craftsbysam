@@ -174,7 +174,7 @@ const VoiceAIChatWidget: React.FC<VoiceAIChatWidgetProps> = ({ openCart }) => {
         <div className="fixed bottom-24 right-6 w-[360px] h-[500px] bg-white rounded-2xl shadow-2xl z-40 flex flex-col overflow-hidden border border-brand-border">
           <header className="bg-brand-pink text-white p-4 flex justify-between items-center shadow-sm">
             <span className="font-bold">AI Shopping Assistant</span>
-            <button onClick={() => setIsOpen(false)} className="text-white hover:text-gray-200">
+            <button onClick={() => setIsOpen(false)} className="text-white hover:text-gray-200" aria-label="Close chat">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
                 </svg>

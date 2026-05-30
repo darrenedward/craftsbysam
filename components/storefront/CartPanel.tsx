@@ -31,7 +31,7 @@ const CartPanel: React.FC<CartPanelProps> = ({ isOpen, onClose, goToCheckout }) 
         <div className="flex flex-col h-full">
           <header className="flex justify-between items-center p-6 border-b border-brand-border">
             <h2 className="text-2xl font-bold text-brand-text">Shopping Cart</h2>
-            <button onClick={onClose} className="text-gray-500 hover:text-gray-800">&times;</button>
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-800" aria-label="Close cart">&times;</button>
           </header>
 
           <div className="flex-grow overflow-y-auto p-6">
