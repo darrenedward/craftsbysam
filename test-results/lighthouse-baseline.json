@@ -1,0 +1,24 @@
+{
+  "performance": {
+    "domContentLoaded": 681.4000000357628,
+    "loadComplete": 1489.2000000476837,
+    "firstPaint": 712
+  },
+  "accessibility": {
+    "issues": [
+      "No navigation or skip links found"
+    ],
+    "score": 90
+  },
+  "seo": {
+    "issues": [
+      "Missing meta description",
+      "Multiple H1 headings found"
+    ],
+    "score": 70
+  },
+  "bestPractices": {
+    "issues": [],
+    "score": 100
+  }
+}
