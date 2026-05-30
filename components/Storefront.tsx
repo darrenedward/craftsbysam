@@ -167,7 +167,7 @@ const Storefront: React.FC<StorefrontProps> = ({ goToAdmin, goToAccount, session
                       <h2 className="text-3xl font-bold text-brand-text">
                         {currentFilterName}
                       </h2>
-                      <span className="text-sm text-brand-light-text font-medium bg-gray-100 px-3 py-1 rounded-full">
+                      <span className="text-sm text-brand-text font-medium bg-gray-100 px-3 py-1 rounded-full">
                           {filteredProducts.length} {filteredProducts.length === 1 ? 'item' : 'items'}
                       </span>
                   </div>
