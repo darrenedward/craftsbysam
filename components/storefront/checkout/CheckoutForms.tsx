@@ -12,6 +12,7 @@ interface CheckoutFormsProps {
   onShippingChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onBillingChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onToggleBillingSame: () => void;
+  onSubmit?: (e: React.FormEvent) => void;
 }
 
 export const CheckoutForms: React.FC<CheckoutFormsProps> = ({
@@ -23,10 +24,11 @@ export const CheckoutForms: React.FC<CheckoutFormsProps> = ({
   onShippingChange,
   onBillingChange,
   onToggleBillingSame,
+  onSubmit,
 }) => {
   return (
     <div className="bg-white p-8 rounded-lg shadow-md space-y-8">
-      <form id="checkout-form" onSubmit={(e) => e.preventDefault()}>
+      <form id="checkout-form" onSubmit={onSubmit}>
         <fieldset className="space-y-4">
           <legend className="text-xl font-semibold mb-4 text-brand-text">Contact Information</legend>
           <Input

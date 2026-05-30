@@ -198,6 +198,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
             onShippingChange={handleShippingChange}
             onBillingChange={handleBillingChange}
             onToggleBillingSame={() => setBillingSameAsShipping(!billingSameAsShipping)}
+            onSubmit={handleManualSubmit}
           />
 
           {/* Right Side: Order Summary & Payment */}
