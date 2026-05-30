@@ -43,7 +43,7 @@ const Sidebar: React.FC<SidebarProps> = ({ searchTerm, onSearchChange, selectedF
         
         {/* Category List */}
         <div>
-           <h3 className="text-lg font-semibold text-brand-text mb-2">Categories</h3>
+           <h2 className="text-lg font-semibold text-brand-text mb-2">Categories</h2>
             <ul className="space-y-2">
                 <li>
                     <button
