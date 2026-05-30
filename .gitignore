@@ -12,6 +12,38 @@ dist
 dist-ssr
 *.local
 
+# Environment variables and sensitive files
+.env
+.env.*
+.env*.local
+*.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Credentials and keys
+*credentials*
+*private-keys*
+*.key
+*.pem
+*.p12
+*.pfx
+secret*
+secrets/
+credentials/
+
+# API keys and tokens
+*api-keys*
+*tokens*
+auth_tokens/
+session_tokens/
+
+# Database backups and dumps
+*.sql
+*.sqlite
+*.db.backup
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
