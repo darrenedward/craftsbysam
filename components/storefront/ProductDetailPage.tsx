@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { Product } from '../../types';
 import { useStore } from '../../hooks/useStore';
 import { Button } from '../ui/Button';
+import ProductDescription from './ProductDescription';
+import { getProductDescription } from '../../data/productDescriptions';
 
 interface ProductDetailPageProps {
   product: Product;
@@ -114,7 +116,13 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, onBack, 
                     + ${product.shippingCost.toFixed(2)} shipping
                 </p>
             )}
-            <p className="text-brand-light-text leading-relaxed">{product.description}</p>
+            <div className="mt-4">
+              {getProductDescription(product.id) ? (
+                <ProductDescription htmlContent={getProductDescription(product.id)!} />
+              ) : (
+                <p className="text-brand-light-text leading-relaxed">{product.description}</p>
+              )}
+            </div>
             
             <div className="mt-8 space-y-6">
                 <h3 className="text-xl font-semibold text-brand-text border-b pb-2">Personalize Your Item</h3>
