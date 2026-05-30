@@ -11,6 +11,7 @@ import { supabase } from '../../supabaseClient';
 import { formatError } from '../../utils/errorHelper';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { getStripe } from '../../utils/stripeLoader';
+import { createPaymentIntent } from '../../utils/stripeApi';
 
 interface CheckoutPageProps {
   onBack: () => void;
@@ -84,14 +85,16 @@ const PayPalButtons: React.FC<{
 };
 
 // --- Stripe Payment Component ---
-const StripePaymentForm: React.FC<{ 
-    amount: number; 
-    onSubmit: (paymentMethodId: string) => Promise<void>; 
-    isProcessing: boolean 
-}> = ({ amount, onSubmit, isProcessing }) => {
+const StripePaymentForm: React.FC<{
+    amount: number;
+    onSubmit: (paymentDetails: { id: string; status: string }) => Promise<void>;
+    isProcessing: boolean
+    customerInfo: { name: string; email: string }
+}> = ({ amount, onSubmit, isProcessing, customerInfo }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [error, setError] = useState<string | null>(null);
+    const [processing, setProcessing] = useState(false);
 
     const handleSubmit = async (event: React.FormEvent) => {
         event.preventDefault();
@@ -100,20 +103,48 @@ const StripePaymentForm: React.FC<{
             return;
         }
 
-        const cardElement = elements.getElement(CardElement);
-        if (!cardElement) return;
+        setProcessing(true);
+        setError(null);
 
-        const { error, paymentMethod } = await stripe.createPaymentMethod({
-            type: 'card',
-            card: cardElement,
-        });
+        try {
+            // Step 1: Create PaymentIntent via Supabase Edge Function
+            const { clientSecret, paymentIntentId, error: intentError } = await createPaymentIntent(
+                amount,
+                'nzd',
+                { customer_name: customerInfo.name, customer_email: customerInfo.email }
+            );
 
-        if (error) {
-            console.error(error);
-            setError(error.message || 'An unknown error occurred');
-        } else if (paymentMethod) {
-            setError(null);
-            await onSubmit(paymentMethod.id);
+            if (intentError || !clientSecret) {
+                setError(`Failed to create payment intent: ${intentError || 'Unknown error'}`);
+                setProcessing(false);
+                return;
+            }
+
+            // Step 2: Confirm the payment using Stripe.js
+            const { error: confirmError, paymentIntent } = await stripe.confirmPayment({
+                clientSecret,
+                confirmParams: {
+                    return_url: window.location.origin + '/checkout',
+                },
+                redirect: 'if_required'
+            });
+
+            if (confirmError) {
+                console.error('Payment confirmation error:', confirmError);
+                setError(`Payment failed: ${confirmError.message}`);
+                setProcessing(false);
+                return;
+            }
+
+            // Step 3: Handle successful payment
+            if (paymentIntent && (paymentIntent.status === 'succeeded' || paymentIntent.status === 'processing')) {
+                await onSubmit({ id: paymentIntentId, status: paymentIntent.status });
+            }
+        } catch (error: any) {
+            console.error('Payment processing error:', error);
+            setError(`Payment error: ${error.message || 'Unknown error'}`);
+        } finally {
+            setProcessing(false);
         }
     };
 
@@ -137,12 +168,12 @@ const StripePaymentForm: React.FC<{
                 }} />
             </div>
             {error && <div className="text-red-500 text-xs mt-2">{error}</div>}
-            <Button 
-                type="submit" 
-                disabled={!stripe || isProcessing} 
+            <Button
+                type="submit"
+                disabled={!stripe || isProcessing || processing}
                 className="w-full mt-4 py-2"
             >
-                {isProcessing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
+                {processing || isProcessing ? 'Processing...' : `Pay $${amount.toFixed(2)}`}
             </Button>
             <div className="flex items-center justify-center gap-1 mt-3">
                 <svg className="h-4 w-4 text-gray-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
@@ -239,20 +270,20 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
         showToast("Your cart is empty!", 'error');
         return;
     }
-    
+
     if (!validateForm()) {
         showToast("Please fill in all required contact and address fields.", 'error');
         return;
     }
 
     setIsProcessing(true);
-    
+
     try {
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id || null;
 
         const finalBillingAddress = billingSameAsShipping ? shippingAddress : billingAddress;
-        
+
         const newCustomerData: Omit<Customer, 'id'> = {
           ...customerInfo,
           shippingAddress,
@@ -261,11 +292,22 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
         const savedCustomer = await addCustomer(newCustomerData);
 
         let finalPaymentMethod = paymentMethod || 'Unknown';
+        let orderStatus = 'Pending';
+
         if (transactionDetails) {
             if (paymentMethod === 'Stripe') {
-                finalPaymentMethod = `Credit Card (Stripe Txn: ${transactionDetails.id || transactionDetails})`;
+                finalPaymentMethod = `Credit Card (Stripe Txn: ${transactionDetails.id})`;
+                // Set order status based on payment status from Stripe
+                if (transactionDetails.status === 'succeeded') {
+                    orderStatus = 'Processing';
+                } else if (transactionDetails.status === 'processing') {
+                    orderStatus = 'Payment Processing';
+                } else {
+                    orderStatus = 'Payment Failed';
+                }
             } else {
                 finalPaymentMethod = `PayPal (Txn: ${transactionDetails.id})`;
+                orderStatus = 'Processing';
             }
         }
 
@@ -276,8 +318,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
             total,
             shippingCost: totalShipping,
             paymentMethod: finalPaymentMethod,
-            // PayPal/Stripe orders are technically paid/processing, others are pending
-            status: transactionDetails ? 'Processing' : 'Pending', 
+            status: orderStatus,
             orderDate: new Date().toISOString().split('T')[0],
             shippingAddress,
             billingAddress: finalBillingAddress,
@@ -289,7 +330,7 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
             } : undefined
         };
         const savedOrder = await addOrder(newOrderData, userId);
-        
+
         dispatchCartAction({ type: 'CLEAR_CART' });
         showToast("Order placed successfully!", 'success');
         onOrderPlaced(savedOrder.id);
@@ -308,18 +349,6 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
           return;
       }
       handlePlaceOrder();
-  };
-  
-  const handleStripeSubmit = async (paymentMethodId: string) => {
-      // In a real app, you would send this paymentMethodId to your backend
-      // to create a PaymentIntent and confirm the payment using the secret key.
-      // Since this is a client-side demo without edge functions, we will mock the server confirmation.
-      
-      // Mock server processing delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Proceed with order placement assuming success
-      await handlePlaceOrder(paymentMethodId);
   };
 
   return (
@@ -461,10 +490,11 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
                             />
                         ) : paymentMethod === 'Stripe' && settings?.payment?.stripe?.publishableKey ? (
                             <Elements stripe={getStripe(settings.payment.stripe.publishableKey)}>
-                                <StripePaymentForm 
-                                    amount={total} 
-                                    onSubmit={handleStripeSubmit} 
+                                <StripePaymentForm
+                                    amount={total}
+                                    onSubmit={handlePlaceOrder}
                                     isProcessing={isProcessing}
+                                    customerInfo={customerInfo}
                                 />
                             </Elements>
                         ) : (
