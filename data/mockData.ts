@@ -10,7 +10,11 @@ export const mockCategories: Category[] = [
 export const mockSubcategories: Subcategory[] = [
     { id: 'sub_beer', name: 'Beer Mugs', category_id: 'cat_glass', created_at: new Date().toISOString() },
     { id: 'sub_wine', name: 'Wine Glasses', category_id: 'cat_glass', created_at: new Date().toISOString() },
+    { id: 'sub_whiskey', name: 'Whiskey Glasses', category_id: 'cat_glass', created_at: new Date().toISOString() },
+    { id: 'sub_champagne', name: 'Champagne Flutes', category_id: 'cat_glass', created_at: new Date().toISOString() },
     { id: 'sub_keyring', name: 'Keyrings', category_id: 'cat_access', created_at: new Date().toISOString() },
+    { id: 'sub_phonecase', name: 'Phone Cases', category_id: 'cat_access', created_at: new Date().toISOString() },
+    { id: 'sub_totebag', name: 'Tote Bags', category_id: 'cat_access', created_at: new Date().toISOString() },
     { id: 'sub_coasters', name: 'Coasters', category_id: 'cat_decor', created_at: new Date().toISOString() },
 ];
 
@@ -103,6 +107,72 @@ export const mockProducts: Product[] = [
         customizations: [
             { id: "coaster_color", name: "Main Color", type: "select", options: ["Ocean Blue", "Emerald Green", "Amethyst Purple"], required: true },
             { id: "edge_color", name: "Edge Detail", type: "select", options: ["Gold Leaf", "Silver Leaf"], required: true }
+        ],
+        created_at: new Date().toISOString()
+    },
+    {
+        id: 'prod_7',
+        name: 'Personalised Whiskey Glass',
+        description: 'Weighted base, crystal-clear clarity, and a rocks glass silhouette built for serious sippers.',
+        price: 28.99,
+        stock: 60,
+        imageUrl: 'https://placehold.co/400x400/fef3c7/b45309?text=Whiskey+Glass',
+        isFeatured: true,
+        subcategory: { id: 'sub_whiskey', name: 'Whiskey Glasses', category: { id: 'cat_glass', name: 'Glassware' } },
+        customizations: [
+            { id: "whiskey_text", name: "Engraving", type: "text", required: true, helperText: "Name, message, or quote. Up to 2 lines.", lineLengths: [15, 20] },
+            { id: "whiskey_font", name: "Font Style", type: "select", options: ["Bold", "Script", "Rustic"], required: true },
+            { id: "whiskey_gold", name: "Gold Accent", type: "select", options: ["No", "Yes - +$5"], required: true }
+        ],
+        created_at: new Date().toISOString()
+    },
+    {
+        id: 'prod_8',
+        name: 'Personalised Champagne Flute',
+        description: 'Elegant, tall-stemmed, and designed to showcase bubbles at their best.',
+        price: 24.99,
+        stock: 45,
+        imageUrl: 'https://placehold.co/400x400/fae8ff/7e22ce?text=Champagne+Flute',
+        isFeatured: true,
+        subcategory: { id: 'sub_champagne', name: 'Champagne Flutes', category: { id: 'cat_glass', name: 'Glassware' } },
+        customizations: [
+            { id: "champ_names", name: "Names/Message", type: "text", required: true, helperText: "Bride & Groom names, or personal message. Up to 2 lines.", lineLengths: [20, 25] },
+            { id: "champ_placement", name: "Engraving Placement", type: "select", options: ["Bowl (visible)", "Stem (subtle)"], required: true },
+            { id: "champ_font", name: "Font Style", type: "select", options: ["Delicate Script", "Modern Clean", "Sparkle Contrast"], required: true }
+        ],
+        created_at: new Date().toISOString()
+    },
+    {
+        id: 'prod_9',
+        name: 'Personalised Phone Case',
+        description: 'Crafted from durable impact-resistant polycarbonate, each case offers reliable protection without bulk.',
+        price: 34.99,
+        stock: 80,
+        imageUrl: 'https://placehold.co/400x400/f0fdf4/166534?text=Phone+Case',
+        isFeatured: false,
+        subcategory: { id: 'sub_phonecase', name: 'Phone Cases', category: { id: 'cat_access', name: 'Accessories' } },
+        customizations: [
+            { id: "phone_model", name: "Phone Model", type: "select", options: ["iPhone 12", "iPhone 13", "iPhone 14", "iPhone 15", "Samsung S21", "Samsung S22", "Samsung S23", "Samsung S24", "Google Pixel 7", "Google Pixel 8"], required: true },
+            { id: "phone_text", name: "Personalisation", type: "text", required: true, helperText: "Name, initials, or short quote. Up to 2 lines.", lineLengths: [12, 20] },
+            { id: "phone_color", name: "Case Color", type: "select", options: ["Black", "White", "Navy Blue", "Forest Green"], required: true },
+            { id: "phone_placement", name: "Text Placement", type: "select", options: ["Centered", "Corner", "Full-width"], required: true }
+        ],
+        created_at: new Date().toISOString()
+    },
+    {
+        id: 'prod_10',
+        name: 'Personalised Tote Bag',
+        description: 'Sewn from heavyweight 100% cotton canvas, each tote is built to handle groceries, books, gym gear, or everyday essentials.',
+        price: 29.99,
+        stock: 70,
+        imageUrl: 'https://placehold.co/400x400/fffbeb/92400e?text=Tote+Bag',
+        isFeatured: true,
+        subcategory: { id: 'sub_totebag', name: 'Tote Bags', category: { id: 'cat_access', name: 'Accessories' } },
+        customizations: [
+            { id: "tote_text", name: "Personalisation", type: "text", required: true, helperText: "Your name, phrase, or motto. Up to 2 lines.", lineLengths: [15, 25] },
+            { id: "tote_method", name: "Decoration Method", type: "select", options: ["Embroidery", "Screen Print"], required: true },
+            { id: "tote_color", name: "Bag Color", type: "select", options: ["Natural Canvas", "Black", "Navy", "Forest Green"], required: true },
+            { id: "tote_placement", name: "Placement", type: "select", options: ["Centered Pocket", "Strap Tag", "Full-width Statement"], required: true }
         ],
         created_at: new Date().toISOString()
     }
