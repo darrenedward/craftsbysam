@@ -5,6 +5,8 @@ import { Input } from './ui/Input';
 import { Button } from './ui/Button';
 import { useStore } from '../hooks/useStore';
 import { formatError } from '../utils/errorHelper';
+import { checkRateLimit, validateEmail, validatePassword } from '../utils/validation';
+import { sanitizeErrorMessage, clearCsrfToken } from '../utils/security';
 
 interface AuthPageProps {
   goBack: () => void;
@@ -43,11 +45,16 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
       let score = 0;
       const feedback = [];
 
-      if (pass.length >= 8) score += 1;
-      else feedback.push("At least 8 characters");
+      // REQUIREMENTS FOR STRONG PASSWORD (increased from 3/4 to 4/4 + length)
+      if (pass.length >= 12) score += 1;
+      else if (pass.length >= 10) score += 0.5;
+      else feedback.push("At least 12 characters");
 
       if (/[A-Z]/.test(pass)) score += 1;
       else feedback.push("Uppercase letter");
+
+      if (/[a-z]/.test(pass)) score += 1;
+      else feedback.push("Lowercase letter");
 
       if (/[0-9]/.test(pass)) score += 1;
       else feedback.push("Number");
@@ -55,7 +62,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
       if (/[^A-Za-z0-9]/.test(pass)) score += 1;
       else feedback.push("Special character (!@#$%)");
 
-      setPasswordScore(score);
+      // Calculate final score (max 5)
+      const finalScore = Math.min(5, score);
+
+      setPasswordScore(finalScore);
       setPasswordFeedback(feedback);
   };
 
@@ -71,6 +81,21 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
+
+    // Validate email format
+    if (!validateEmail(email)) {
+        setError("Please enter a valid email address.");
+        setLoading(false);
+        return;
+    }
+
+    // Rate limiting check (5 attempts per minute per email)
+    const rateLimitResult = checkRateLimit(`login:${email}`, 5, 60000);
+    if (!rateLimitResult.allowed) {
+        setError("Too many login attempts. Please wait a moment before trying again.");
+        setLoading(false);
+        return;
+    }
 
     if (rememberMe) {
       localStorage.setItem('craftsBySamRememberedEmail', email);
@@ -97,7 +122,8 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
 
         // If no MFA, app will auto-redirect via onAuthStateChange in App.tsx
     } catch (err: any) {
-        setError(formatError(err));
+        // Sanitize error message to prevent information leakage
+        setError(sanitizeErrorMessage(err));
         setLoading(false);
     }
   };
@@ -106,6 +132,14 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
       e.preventDefault();
       setError(null);
       setLoading(true);
+
+      // Rate limiting check (10 MFA attempts per minute per IP)
+      const rateLimitResult = checkRateLimit(`mfa:${email}`, 10, 60000);
+      if (!rateLimitResult.allowed) {
+          setError("Too many verification attempts. Please wait a moment before trying again.");
+          setLoading(false);
+          return;
+      }
 
       try {
           const { data: factors } = await supabase.auth.mfa.listFactors();
@@ -121,20 +155,34 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
           });
 
           if (error) throw error;
-          
+
           showToast("Logged in securely.", 'success');
           // App.tsx will detect the session change/update
       } catch (err: any) {
-          setError(formatError(err));
+          setError(sanitizeErrorMessage(err));
           setLoading(false);
       }
   };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (passwordScore < 3) {
-        setError("Please create a stronger password to sign up.");
+
+    // Validate email format
+    if (!validateEmail(email)) {
+        setError("Please enter a valid email address.");
+        return;
+    }
+
+    // Require stronger password (now 4/5 strength instead of 3/4)
+    if (passwordScore < 4) {
+        setError("Please create a stronger password. Your password must be at least 12 characters and include uppercase, lowercase, numbers, and special characters.");
+        return;
+    }
+
+    // Rate limiting check (3 signup attempts per hour per email)
+    const rateLimitResult = checkRateLimit(`signup:${email}`, 3, 3600000);
+    if (!rateLimitResult.allowed) {
+        setError("Too many signup attempts. Please try again later.");
         return;
     }
 
@@ -142,9 +190,9 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
     setLoading(true);
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) {
-        setError(formatError(error));
+        setError(sanitizeErrorMessage(error));
     } else {
-        alert('Check your email for the confirmation link!');
+        showToast('Check your email for the confirmation link!', 'success');
         setView('login');
     }
     setLoading(false);
@@ -161,10 +209,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
   };
 
   const renderStrengthBar = () => {
-      // 0-4 score
-      const colors = ['bg-gray-200', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-green-500'];
-      const width = (passwordScore / 4) * 100;
-      const color = colors[passwordScore];
+      // 0-5 score (updated from 0-4)
+      const colors = ['bg-gray-200', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-lime-500', 'bg-green-500'];
+      const width = (passwordScore / 5) * 100;
+      const color = colors[Math.min(5, Math.floor(passwordScore))];
 
       return (
           <div className="mt-2">
@@ -174,8 +222,10 @@ const AuthPage: React.FC<AuthPageProps> = ({ goBack }) => {
               <div className="mt-1 text-xs text-gray-500">
                   {passwordScore < 4 ? (
                       <span className="text-red-500">{passwordFeedback.join(', ')} missing.</span>
+                  ) : passwordScore < 5 ? (
+                      <span className="text-yellow-600 font-medium">Good password, but could be stronger.</span>
                   ) : (
-                      <span className="text-green-600 font-medium">Strong password!</span>
+                      <span className="text-green-600 font-medium">Excellent password!</span>
                   )}
               </div>
           </div>

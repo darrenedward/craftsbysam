@@ -8,6 +8,8 @@ import { formatError } from '../../utils/errorHelper';
 import { CheckoutForms } from './checkout/CheckoutForms';
 import { PaymentMethods } from './checkout/PaymentMethods';
 import { OrderSummary } from './checkout/OrderSummary';
+import { validateEmail, validateName, validatePostalCode, sanitizeString, sanitizeAddress } from '../../utils/validation';
+import { generateIdempotencyKey } from '../../utils/security';
 
 interface CheckoutPageProps {
   onBack: () => void;
@@ -92,9 +94,52 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
   }
 
   const validateForm = (): boolean => {
-    if (!customerInfo.name || !customerInfo.email) return false;
-    if (!shippingAddress.street || !shippingAddress.city || !shippingAddress.postalCode) return false;
-    if (!billingSameAsShipping && (!billingAddress.street || !billingAddress.city)) return false;
+    // Validate name
+    if (!validateName(customerInfo.name)) {
+      showToast("Please enter a valid name (letters, spaces, hyphens, and apostrophes only).", 'error');
+      return false;
+    }
+
+    // Validate email
+    if (!validateEmail(customerInfo.email)) {
+      showToast("Please enter a valid email address.", 'error');
+      return false;
+    }
+
+    // Validate shipping address
+    if (!shippingAddress.street || !sanitizeAddress(shippingAddress.street)) {
+      showToast("Please enter a valid street address.", 'error');
+      return false;
+    }
+
+    if (!shippingAddress.city || !validateName(shippingAddress.city)) {
+      showToast("Please enter a valid city name.", 'error');
+      return false;
+    }
+
+    if (!shippingAddress.postalCode || !validatePostalCode(shippingAddress.postalCode)) {
+      showToast("Please enter a valid postal code.", 'error');
+      return false;
+    }
+
+    if (!shippingAddress.country || !validateName(shippingAddress.country)) {
+      showToast("Please enter a valid country name.", 'error');
+      return false;
+    }
+
+    // Validate billing address if different from shipping
+    if (!billingSameAsShipping) {
+      if (!billingAddress.street || !sanitizeAddress(billingAddress.street)) {
+        showToast("Please enter a valid billing street address.", 'error');
+        return false;
+      }
+
+      if (!billingAddress.city || !validateName(billingAddress.city)) {
+        showToast("Please enter a valid billing city name.", 'error');
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -117,10 +162,30 @@ const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBack, onOrderPlaced }) =>
 
       const finalBillingAddress = billingSameAsShipping ? shippingAddress : billingAddress;
 
+      // Sanitize all user input before storing
+      const sanitizedCustomerInfo = {
+        name: sanitizeString(customerInfo.name),
+        email: customerInfo.email.toLowerCase().trim()
+      };
+
+      const sanitizedShippingAddress = {
+        street: sanitizeAddress(shippingAddress.street),
+        city: sanitizeString(shippingAddress.city),
+        postalCode: sanitizeString(shippingAddress.postalCode),
+        country: sanitizeString(shippingAddress.country)
+      };
+
+      const sanitizedBillingAddress = billingSameAsShipping ? sanitizedShippingAddress : {
+        street: sanitizeAddress(billingAddress.street),
+        city: sanitizeString(billingAddress.city),
+        postalCode: sanitizeString(billingAddress.postalCode),
+        country: sanitizeString(billingAddress.country)
+      };
+
       const newCustomerData: Omit<Customer, 'id'> = {
-        ...customerInfo,
-        shippingAddress,
-        billingAddress: finalBillingAddress,
+        ...sanitizedCustomerInfo,
+        shippingAddress: sanitizedShippingAddress,
+        billingAddress: sanitizedBillingAddress,
       };
       const savedCustomer = await addCustomer(newCustomerData);
 
