@@ -1,4 +1,5 @@
 import React from 'react';
+import DOMPurify from 'dompurify';
 
 interface ProductDescriptionProps {
   htmlContent: string;
@@ -8,13 +9,28 @@ interface ProductDescriptionProps {
  * ProductDescription component
  * Renders rich HTML product descriptions created by the Copywriter.
  *
- * SECURITY NOTE: This component uses dangerouslySetInnerHTML with trusted content
- * from our internal copywriting team. Do not use with user-generated content.
+ * SECURITY: Content is sanitized with DOMPurify to prevent XSS attacks.
+ * Even internal admin content can be compromised if admin accounts are breached.
  */
 const ProductDescription: React.FC<ProductDescriptionProps> = ({ htmlContent }) => {
+  // Configure DOMPurify for product descriptions
+  const sanitizeConfig = {
+    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'br', 'img', 'ul', 'ol', 'li', 'a', 'u', 's', 'sub', 'sup', 'blockquote', 'hr', 'div', 'span'],
+    ALLOWED_ATTR: ['src', 'alt', 'class', 'href', 'title', 'target', 'id', 'style'],
+    ALLOW_DATA_ATTR: false,
+    ALLOW_UNKNOWN_PROTOCOLS: false,
+    FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'style', 'link', 'meta'],
+    FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onmouseover', 'onfocus', 'onblur', 'javascript:'],
+    SANITIZE_DOM: true,
+    KEEP_CONTENT: true
+  };
+
+  const sanitizedHTML = DOMPurify.sanitize(htmlContent, sanitizeConfig);
+
   return (
     <div className="product-description prose prose-sm sm:prose lg:prose-lg max-w-none">
-      <div dangerouslySetInnerHTML={{ __html: htmlContent }} />
+      {/* SECURE: Sanitized HTML rendering with DOMPurify */}
+      <div dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
       <style>{`
         .product-description h1 {
           font-size: 1.875rem;
