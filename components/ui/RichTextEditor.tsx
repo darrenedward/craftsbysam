@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import DOMPurify from 'dompurify';
 import { Button } from './Button';
 import { Modal } from './Modal';
 import ImageManager from '../admin/ImageManager';
@@ -53,6 +54,20 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange 
         setIsImageModalOpen(false);
     };
 
+    // Configure DOMPurify to allow only safe HTML tags and attributes
+    const sanitizeConfig = {
+        ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'h2', 'h3', 'p', 'br', 'img', 'ul', 'ol', 'li', 'a', 'u', 's', 'sub', 'sup', 'blockquote'],
+        ALLOWED_ATTR: ['src', 'alt', 'class', 'href', 'title', 'target'],
+        ALLOW_DATA_ATTR: false,
+        ALLOW_UNKNOWN_PROTOCOLS: false,
+        FORBID_TAGS: ['script', 'iframe', 'object', 'embed', 'form', 'input', 'button', 'style', 'link', 'meta'],
+        FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onmouseover', 'onfocus', 'onblur', 'javascript:'],
+        SANITIZE_DOM: true,
+        KEEP_CONTENT: true
+    };
+
+    const sanitizedHTML = DOMPurify.sanitize(value, sanitizeConfig);
+
     return (
         <div className="border border-brand-border rounded-lg overflow-hidden bg-white">
             <Modal title="Select Image" isOpen={isImageModalOpen} onClose={() => setIsImageModalOpen(false)}>
@@ -89,10 +104,10 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({ value, onChange 
                 
                 {/* Preview */}
                 <div className="border-l border-brand-border bg-gray-50 p-4 overflow-y-auto h-96">
-                    <p className="text-xs font-bold text-gray-400 uppercase mb-2">Live Preview</p>
+                    <p className="text-xs font-bold text-gray-400 uppercase mb-2">Live Preview (Sanitized)</p>
                     <div className="prose max-w-none text-brand-text">
-                        {/* Use standard styling similar to storefront */}
-                        <div dangerouslySetInnerHTML={{ __html: value }} />
+                        {/* SECURE: Sanitized HTML rendering with DOMPurify */}
+                        <div dangerouslySetInnerHTML={{ __html: sanitizedHTML }} />
                         <style>{`
                             .prose h2 { font-size: 1.5rem; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; color: #5C374C; }
                             .prose h3 { font-size: 1.25rem; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; color: #5C374C; }
