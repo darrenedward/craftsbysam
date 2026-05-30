@@ -90,7 +90,7 @@ const Header: React.FC<HeaderProps> = ({ setPage, toggleCart, goToAdmin, goToAcc
                 <button onClick={() => setPage('contact')} className={navButtonClasses}>Contact</button>
             </nav>
             
-             <button onClick={toggleCart} className="relative cursor-pointer hover:opacity-80 transition-opacity">
+             <button onClick={toggleCart} className="relative cursor-pointer hover:opacity-80 transition-opacity" aria-label="Shopping cart">
                 <ShoppingBagIcon />
                 {cartItemCount > 0 && (
                   <span className="absolute -top-2 -right-2 bg-brand-pink text-brand-text text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
